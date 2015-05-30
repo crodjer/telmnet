@@ -4,7 +4,7 @@ import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as JsonD
-import Regex exposing (regex, contains)
+import Regex exposing (regex, contains, split)
 
 -- MODEL
 type alias Message =
@@ -20,7 +20,11 @@ type alias Model =
   , connected: Bool
   , serverInput: String
   , promptInput: String
+  , connectionError: Maybe String
   }
+
+newline : Regex.Regex
+newline = regex "[\n|\r]"
 
 incoming : String
 incoming = "in"
@@ -28,19 +32,24 @@ incoming = "in"
 outgoing : String
 outgoing = "out"
 
+protocol : String
+protocol = "ws://"
+
 init : Model
 init =
   {
-    server = "" -- "ws://localhost:9000"
+    server = ""
   , log = []
-  , connected = True
-  , serverInput = "ws://localhost:9000"
+  , connected = False
+  , serverInput = protocol ++ "localhost:9000"
   , promptInput = ""
+  , connectionError = Nothing
   }
 
 
 -- ACTIONS
-type Action = Connect Bool
+type Action = Connect String
+            | Disconnect (Maybe String)
             | UpdateServer String
             | UpdatePrompt String
             | Send String
@@ -57,11 +66,16 @@ update act model =
   in
   case act of
     UpdateServer string -> { model | serverInput <- string }
-    Connect value       -> { model |
-                             connected <- value
-                           , log <- []
-                           , server <- model.serverInput
-                           , serverInput <- ""
+    Connect server      -> { model |
+                             connected       <- True
+                           , log             <- []
+                           , server          <- server
+                           , connectionError <- Nothing
+                           }
+    Disconnect err      -> { model |
+                             connected       <- False
+                           , server          <- ""
+                           , connectionError <- err
                            }
 
     UpdatePrompt string -> { model | promptInput <- string }
@@ -70,7 +84,10 @@ update act model =
                            , promptInput <- ""
                            }
     Receive message     -> { model |
-                             log <- model.log ++ [mkMessage incoming message]
+                             log <- model.log
+                                    ++ (message |> split Regex.All newline
+                                                |> List.map (\s -> s ++ "\n")
+                                                |> List.map (mkMessage outgoing))
                            }
     _                   -> model
 
@@ -93,29 +110,44 @@ view address model =
 
 headerView : Signal.Address Action -> Model -> Html
 headerView address model =
+  let hadConnectionError =
+        case model.connectionError of
+          Nothing -> False
+          _       -> True
+  in
   div []
       [ input [ id "server"
-              , classList [ ("hidden", model.connected) ]
+              , classList [ ("hidden", model.connected)
+                          , ("input-error", hadConnectionError) ]
               , autofocus (not model.connected)
               , value model.serverInput
               , on "input" targetValue (UpdateServer >> Signal.message address)
-              , onEnter address (Connect True)  ]
+              , onEnter address (Connect model.serverInput)  ]
         [ ]
-      , div [ id "toggle-connect"
-            , classList [ ("hidden", not model.connected), ("inline-block", True) ]
+      , div [ classList [ ("hidden", not model.connected)
+                        , ("inline-block", True)
+                        ]
             ]
-        [ text <| "Connected to: " ++ model.server ]
+        [ text <| "Connect to: " ++ model.server ]
       , button [ id "toggle-connect"
-               , onClick address (Connect <| not model.connected)  ]
+               , onClick address (if model.connected
+                                  then Disconnect Nothing
+                                  else Connect model.serverInput )  ]
         [ text <| if model.connected then "Disconnect" else "Connect" ]
+      , div [classList [ ("hidden", not hadConnectionError)
+                       , ("error", True)
+                       , ("inline-block", True) ]]
+        [ text <| Maybe.withDefault "" model.connectionError ]
       ]
 
 terminalView : Signal.Address Action -> Model -> Html
 terminalView address model =
+  let refocusAction = if model.connected then (Refocus "prompt") else NoOp
+  in
   div [ id "terminal"
-      , classList [ ("hidden", not model.connected) ]
-      , onClick address (Refocus "prompt")
-      , onBlur address (Refocus "prompt")
+      , classList [ ("hidden", not model.connected && List.isEmpty model.log) ]
+      , onClick address refocusAction
+      , onBlur address refocusAction
       ]
         ((List.map (logView address) model.log)
          ++ (div [ class "clearfix" ] []) :: [promptView address model])
@@ -123,7 +155,7 @@ terminalView address model =
 logView address message =
     div [ classList [ ("log-entry", True)
                     , ("log-entry-" ++ message.source, True)
-                    , ("float-left", not <| contains (regex "[\n|\r]$") message.text) ]]
+                    , ("float-left", message.text /= "\n") ]]
         [ text message.text ]
 
 promptView : Signal.Address Action -> Model -> Html
@@ -149,7 +181,11 @@ actions : Signal.Mailbox Action
 actions = Signal.mailbox NoOp
 
 signals : Signal Action
-signals = Signal.merge (Signal.map Receive receiveMessage) actions.signal
+signals = Signal.mergeMany
+          [ (Signal.map Receive receiveMessage)
+          , (Signal.map Disconnect disconnected)
+          , actions.signal
+          ]
 
 port reFocus : Signal String
 port reFocus =
@@ -157,7 +193,7 @@ port reFocus =
       server = Just "server"
       focusId act =
         case act of
-          Connect True   ->  prompt
+          Connect _      ->  prompt
           Send _         ->  prompt
           Receive _      ->  prompt
           UpdateServer _ ->  Nothing
@@ -167,10 +203,18 @@ port reFocus =
   in
     Signal.filterMap focusId "" signals
 
-port connectStatus : Signal Bool
-port connectStatus = Signal.map .connected model
+port connection : Signal Model
+port connection =
+  let onConnect (act, model) =
+        case act of
+          Connect _   -> Just model
+          _           -> Nothing
+  in
+  Signal.map2 (,) signals model
+        |> Signal.filterMap onConnect init
 
 port receiveMessage : Signal String
+port disconnected : Signal (Maybe String)
 
 port sendMessage : Signal String
 port sendMessage =

@@ -3,9 +3,20 @@
     font-size: 15px;
 }
 
+.input-error {
+    border: 3px solid #F00;
+}
+
+.error {
+    padding: 2px;
+    font-size: 12px;
+    color: #F00;
+}
+
 #terminal {
-    width: 600px;
-    heading: 800px;
+    width: 90%;
+    min-width: 600px;
+    min-height: 500px;
     background: #aaa;
     color: #000;
     padding: 5px;
@@ -32,14 +43,6 @@
 .float-left {
     float: left;
 }
-
-/* .clearafter:after { */
-/*     content: "."; */
-/*     visibility: hidden; */
-/*     display: block; */
-/*     height: 0; */
-/*     clear: both; */
-/* } */
 
 .inline-block {
     display: inline-block;

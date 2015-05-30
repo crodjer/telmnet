@@ -3,8 +3,10 @@
 (function () {
   'use strict';
 
+  var socket;
   var telmnet = Elm.fullscreen(Elm.Telmnet, {
-    receiveMessage: ''
+    receiveMessage: '',
+    disconnected: null
   });
 
   function isHidden(el) {
@@ -27,27 +29,54 @@
 
       if (document.activeElement !== el) {
         console.log('Re-focussing: ' + elId);
-        document.getElementById(elId).focus();
-        var value = el.value;
-        el.value = '';
-        el.value = value;
+        el.focus();
       }
+
+      var value = el.value;
+      el.value = '';
+      el.value = value;
+
     }, timeout);
   }
 
-  focusEl('server', 500);
+  focusEl('server');
+  window.onfocus = function () {
+    focusEl('prompt');
+  };
+
   telmnet.ports.reFocus.subscribe(focusEl);
-  telmnet.ports.sendMessage.subscribe(function (msg) {
-    if (msg === '') {
-      return;
+
+  telmnet.ports.connection.subscribe(function (model) {
+    var connect = model.connected,
+        server = model.server;
+
+    if (connect) {
+      try {
+        socket = new WebSocket(server, ['binary']);
+      } catch (e) {
+        telmnet.ports.disconnected.send(e.message);
+        return;
+      }
+      socket.onmessage = function (msg) {
+        var reader = new FileReader();
+        reader.addEventListener('loadend', function() {
+          telmnet.ports.receiveMessage.send(reader.result);
+        });
+        reader.readAsBinaryString(msg.data);
+      };
+      socket.onerror = function (/* err */) {
+        telmnet.ports.disconnected.send('Server error!');
+      };
+      socket.onclose = function () {
+        telmnet.ports.disconnected.send(null);
+      };
+    } else {
+      socket.close();
+      socket = null;
     }
-
-    console.log('Sent: ' + msg);
-
-    setTimeout(function () {
-      console.log('Received: ' + msg);
-      telmnet.ports.receiveMessage.send(msg);
-    }, 500);
   });
 
+  telmnet.ports.sendMessage.subscribe(function (msg) {
+    socket.send(msg);
+  });
 }());
