@@ -4,7 +4,7 @@ import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as JsonD
-import Regex exposing (regex, contains, split)
+import Regex exposing (regex, contains, split, replace)
 
 -- MODEL
 type alias Message =
@@ -87,7 +87,7 @@ update act model =
                              log <- model.log
                                     ++ (message |> split Regex.All newline
                                                 |> List.map (\s -> s ++ "\n")
-                                                |> List.map (mkMessage outgoing))
+                                                |> List.map (mkMessage incoming))
                            }
     _                   -> model
 
@@ -149,14 +149,17 @@ terminalView address model =
       , onClick address refocusAction
       , onBlur address refocusAction
       ]
-        ((List.map (logView address) model.log)
-         ++ (div [ class "clearfix" ] []) :: [promptView address model])
+        ((List.map (logView address) model.log) ++ [promptView address model])
 
 logView address message =
-    div [ classList [ ("log-entry", True)
+  let isReturn = message.text == "\n"
+      tag = if isReturn then div else pre
+  in
+    tag [ classList [ ("log-entry", True)
                     , ("log-entry-" ++ message.source, True)
-                    , ("float-left", message.text /= "\n") ]]
-        [ text message.text ]
+                    , ("clearfix", isReturn)
+                    , ("float-left", not isReturn) ]]
+          [ text  message.text ]
 
 promptView : Signal.Address Action -> Model -> Html
 promptView address model =
