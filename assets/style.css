@@ -1,0 +1,50 @@
+#container {
+    padding: 5px;
+    font-size: 15px;
+}
+
+#terminal {
+    width: 600px;
+    heading: 800px;
+    background: #aaa;
+    color: #000;
+    padding: 5px;
+    scroll: auto;
+}
+
+#prompt {
+    padding: 0px;
+    border: none;
+    width: 500px;
+}
+
+#terminal, #prompt {
+    font-family: "DejaVu Sans Mono", "Liberation Mono", monospace;
+    background: #aaa;
+    color: #000;
+}
+
+.log-entry {
+    display: block;
+}
+
+.float-left {
+    float: left;
+}
+
+/* .clearafter:after { */
+/*     content: "."; */
+/*     visibility: hidden; */
+/*     display: block; */
+/*     height: 0; */
+/*     clear: both; */
+/* } */
+
+.inline-block {
+    display: inline-block;
+    /* margin-right: 5px; */
+}
+
+.hidden {
+    display: none;
+}
