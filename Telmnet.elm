@@ -45,6 +45,7 @@ type Action = Connect Bool
             | UpdatePrompt String
             | Send String
             | Receive String
+            | Refocus String
             | NoOp
 
 update : Action -> Model -> Model
@@ -71,7 +72,7 @@ update act model =
     Receive message     -> { model |
                              log <- model.log ++ [mkMessage incoming message]
                            }
-    _                   -> init
+    _                   -> model
 
 -- VIEW
 
@@ -113,6 +114,8 @@ terminalView : Signal.Address Action -> Model -> Html
 terminalView address model =
   div [ id "terminal"
       , classList [ ("hidden", not model.connected) ]
+      , onClick address (Refocus "prompt")
+      , onBlur address (Refocus "prompt")
       ]
         ((List.map (logView address) model.log)
          ++ (div [ class "clearfix" ] []) :: [promptView address model])
@@ -159,6 +162,7 @@ port reFocus =
           Receive _      ->  prompt
           UpdateServer _ ->  Nothing
           UpdatePrompt _ ->  Nothing
+          Refocus elId    -> Just elId
           _              ->  server
   in
     Signal.filterMap focusId "" signals

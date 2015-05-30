@@ -20,6 +20,7 @@
 
 #terminal, #prompt {
     font-family: "DejaVu Sans Mono", "Liberation Mono", monospace;
+    font-size: 14px;
     background: #aaa;
     color: #000;
 }
