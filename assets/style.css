@@ -27,6 +27,7 @@
     padding: 0px;
     border: none;
     width: 500px;
+    float: left;
 }
 
 #terminal, #prompt {
@@ -47,7 +48,7 @@
 }
 
 .log-entry-out {
-    float: none;
+    /* float: none; */
 }
 
 .inline-block {

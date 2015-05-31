@@ -47,10 +47,10 @@
   telmnet.ports.reFocus.subscribe(focusEl);
 
   telmnet.ports.connection.subscribe(function (model) {
-    var connect = model.connected,
+    var connected = model.connected,
         server = model.server;
 
-    if (connect) {
+    if (connected) {
       try {
         socket = new WebSocket(server, ['binary']);
       } catch (e) {
@@ -65,10 +65,16 @@
         reader.readAsBinaryString(msg.data);
       };
       socket.onerror = function (/* err */) {
-        telmnet.ports.disconnected.send('Server error!');
+        if (connected) {
+          telmnet.ports.disconnected.send('Server error.');
+          connected = false;
+        }
       };
       socket.onclose = function () {
-        telmnet.ports.disconnected.send(null);
+        if (connected) {
+          telmnet.ports.disconnected.send(null);
+          connected = false;
+        }
       };
     } else {
       socket.close();
