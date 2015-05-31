@@ -4,7 +4,7 @@ import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
 import Utils exposing (..)
-import Regex exposing (regex, contains, split, find)
+import Regex exposing (contains)
 
 type alias Model =
   {
@@ -40,14 +40,6 @@ type Action = Connect String
 
 update : Action -> Model -> Model
 update act model =
-  let mkMessage src msg =
-        { source = src
-        , text = msg
-        }
-      splitMessage msg = internalMerge
-                         (split Regex.All newline msg)
-                         (List.map (\_ -> "\n") (find Regex.All newline msg))
-  in
   case act of
     UpdateServer string -> { model | serverInput <- string }
     Connect server      -> { model |
@@ -69,7 +61,7 @@ update act model =
                            }
     Receive message     -> { model |
                              log <- model.log
-                                    ++ splitMessage message
+                                    ++ (splitAroundNewline message)
                            }
     _                   -> model
 

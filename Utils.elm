@@ -3,6 +3,8 @@ module Utils
   , onEnter
   , newline
   , newLineEnd
+  , splitAround
+  , splitAroundNewline
   ) where
 
 {- |
@@ -13,7 +15,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as JsonD
-import Regex exposing (regex)
+import Regex exposing (regex, find, split)
 
 onEnter : Signal.Address a -> a -> Attribute
 onEnter address value =
@@ -38,3 +40,10 @@ newline = regex "\n"
 newLineEnd : Regex.Regex
 newLineEnd = regex "\n$"
 
+
+splitAround : Regex.Regex -> String -> List String
+splitAround rx str =
+  internalMerge (split Regex.All rx str) (List.map .match (find Regex.All rx str))
+
+splitAroundNewline : String -> List String
+splitAroundNewline = splitAround newline
