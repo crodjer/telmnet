@@ -4,6 +4,22 @@ Telmnet is telnet client, written in Elm. Actually, it is a client for the
 [websockify][] protocol. So, it only connects to websockify based proxies
 instead of any TCP server.
 
+## Building
+
+To build, run:
+
+```
+elm-make  Telmnet.elm  --output assets/app.js
+```
+
+and open index.html in a browser.
+
+For continuous builds, use [watchman][]:
+
+```bash
+watchman -r *.elm -- elm-make  Telmnet.elm  --output assets/app.js
+```
+
 ## Motivation
 
 The motivation for this comes from my desire to build a web based client for
@@ -25,4 +41,5 @@ those at:
    `address` should be visible to your browser though.
 
 [websockify]: https://github.com/kanaka/websockify
+[watchman]: https://github.com/crodjer/watchman
 [FICS]: http://freechess.org/
