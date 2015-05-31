@@ -77,7 +77,9 @@
         }
       };
     } else {
-      socket.close();
+      if (socket) {
+        socket.close();
+      }
       socket = null;
     }
   });

@@ -237,8 +237,9 @@ port connection : Signal Model
 port connection =
   let onConnect (act, model) =
         case act of
-          Connect _   -> Just model
-          _           -> Nothing
+          Connect _     -> Just model
+          Disconnect _  -> Just model
+          _             -> Nothing
   in
   Signal.map2 (,) signals model
         |> Signal.filterMap onConnect init
