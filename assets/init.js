@@ -3,11 +3,13 @@
 (function () {
   'use strict';
 
-  var socket;
-  var telmnet = Elm.fullscreen(Elm.Telmnet, {
-    receiveMessage: '',
-    disconnected: null
-  });
+  var socket,
+      initial = {
+        receiveMessage: '',
+        disconnected: null
+      };
+  // var telmnet = Elm.fullscreenDebug('Telmnet', 'Telmnet.elm', initial);
+  var telmnet = Elm.fullscreen(Elm.Telmnet, initial);
 
   function isHidden(el) {
     return el.offsetParent === null;
