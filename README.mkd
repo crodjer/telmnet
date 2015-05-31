@@ -23,8 +23,8 @@ watchman -r *.elm -- elm-make  Telmnet.elm  --output assets/app.js
 ## Motivation
 
 The motivation for this comes from my desire to build a web based client for
-[FICS][] (Free internet chess server), which runs over TCP. This really was
-is proof of concept for me.
+[FICS][] (Free internet chess server), which runs over TCP. This really is proof
+of concept.
 
 ## Try
 
