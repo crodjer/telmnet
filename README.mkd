@@ -33,8 +33,12 @@ those at:
 
  - `ws://vps.rohanjain.in:9000/`: A simple group chat server.
 
- - `ws://vps.rohanjain.in:9001/`: Proxy over the [FICS][] server. One can do
+ - `ws://vps.rohanjain.in:9001/`: Proxy to the [FICS][] server. One can do
    anything possible with `telnet freechess.org`, even play a few chess games.
+
+ - `ws://vps.rohanjain.in:9002/`: Proxy to the [Freenode][] IRC server. If you
+   know the protocol, you have your IRC client! Try [this][irc-over-telnet]
+   link.
 
  - You can connect to any other server by installing [websockify][] and running:
    `websockify [options] [address:]port [service_address:service_port]`.
@@ -43,3 +47,5 @@ those at:
 [websockify]: https://github.com/kanaka/websockify
 [watchman]: https://github.com/crodjer/watchman
 [FICS]: http://freechess.org/
+[Freenode]: http://freenode.net/
+[irc-over-telnet]: https://shellfish.io/tutorial/3/how-to-navigate-a-telnet-irc-session/
