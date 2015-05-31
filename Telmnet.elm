@@ -4,7 +4,7 @@ import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as JsonD
-import Regex exposing (regex, contains, split, replace)
+import Regex exposing (regex, contains, split, find)
 
 -- MODEL
 type alias Message =
@@ -24,7 +24,13 @@ type alias Model =
   }
 
 newline : Regex.Regex
-newline = regex "[\n|\r]"
+newline = regex "\n"
+
+newLineStart : Regex.Regex
+newLineStart = regex "^\n"
+
+newLineEnd : Regex.Regex
+newLineEnd = regex "\n$"
 
 incoming : String
 incoming = "in"
@@ -41,7 +47,7 @@ init =
     server = ""
   , log = []
   , connected = False
-  , serverInput = protocol ++ "localhost:9000"
+  , serverInput = protocol
   , promptInput = ""
   , connectionError = Nothing
   }
@@ -63,6 +69,9 @@ update act model =
         { source = src
         , text = msg
         }
+      splitMessage msg = internalMerge
+                         (split Regex.All newline msg)
+                         (List.map (\_ -> "\n") (find Regex.All newline msg))
   in
   case act of
     UpdateServer string -> { model | serverInput <- string }
@@ -85,13 +94,21 @@ update act model =
                            }
     Receive message     -> { model |
                              log <- model.log
-                                    ++ (message |> split Regex.All newline
-                                                |> List.map (\s -> s ++ "\n")
-                                                |> List.map (mkMessage incoming))
+                                    ++ (message
+                                          |> splitMessage
+                                          |> List.map (mkMessage incoming))
                            }
     _                   -> model
 
 -- VIEW
+
+
+internalMerge : List a -> List a -> List a
+internalMerge xs ys =
+  case (xs, ys) of
+    (_, [])              -> xs
+    ([], _)              -> ys
+    (x :: xs, y :: ys)   -> x :: y :: internalMerge xs ys
 
 onEnter : Signal.Address a -> a -> Attribute
 onEnter address value =
@@ -143,22 +160,36 @@ headerView address model =
 terminalView : Signal.Address Action -> Model -> Html
 terminalView address model =
   let refocusAction = if model.connected then (Refocus "prompt") else NoOp
+      clearfix = div [classList [("clearfix", True)]] []
   in
   div [ id "terminal"
       , classList [ ("hidden", not model.connected && List.isEmpty model.log) ]
       , onClick address refocusAction
       , onBlur address refocusAction
       ]
-        ((List.map (logView address) model.log) ++ [promptView address model])
+  -- [allLogView model, promptView address model, clearfix]
+  ((List.map (logView address) model.log) ++ [promptView address model, clearfix])
+
+
+allLogView model =
+  let allText = model.log
+              |> List.map .text
+              |> List.foldr (++) ""
+
+  in
+    pre [ classList [ ] ]
+          [ text <| allText]
 
 logView address message =
   let isReturn = message.text == "\n"
+      endsWithReturn = contains newLineEnd message.text
       tag = if isReturn then div else pre
   in
     tag [ classList [ ("log-entry", True)
                     , ("log-entry-" ++ message.source, True)
+                    , ("float-left", not endsWithReturn)
                     , ("clearfix", isReturn)
-                    , ("float-left", not isReturn) ]]
+                    ]]
           [ text  message.text ]
 
 promptView : Signal.Address Action -> Model -> Html
