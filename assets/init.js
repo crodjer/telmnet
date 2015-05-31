@@ -24,25 +24,22 @@
       var el = document.getElementById(elId);
 
       if (isHidden(el)) {
+        // Don't try to focus the element if it is hidden.
         return;
       }
 
       if (document.activeElement !== el) {
-        console.log('Re-focussing: ' + elId);
         el.focus();
       }
 
+      // On focus, the cursor moves to the start of a input box, the following
+      // moves it to the end.
       var value = el.value;
       el.value = '';
       el.value = value;
 
     }, timeout);
   }
-
-  focusEl('server');
-  window.onfocus = function () {
-    focusEl('prompt');
-  };
 
   telmnet.ports.reFocus.subscribe(focusEl);
 
@@ -87,4 +84,11 @@
   telmnet.ports.sendMessage.subscribe(function (msg) {
     socket.send(msg);
   });
+
+  // TODO: Avoid the following app logic in JavaScript
+  focusEl('server');
+  window.onfocus = function () {
+    // Focus the prompt
+    focusEl('prompt');
+  };
 }());

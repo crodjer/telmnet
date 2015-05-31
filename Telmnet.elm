@@ -6,6 +6,8 @@ import Html.Attributes exposing (..)
 import Utils exposing (..)
 import Regex exposing (contains)
 
+-- MODEL
+
 type alias Model =
   {
     server: String
@@ -77,6 +79,7 @@ view address model =
 
 headerView : Signal.Address Action -> Model -> Html
 headerView address model =
+  -- If a connection error happened, paint things in red.
   let hadConnectionError =
         case model.connectionError of
           Nothing -> False
@@ -113,6 +116,7 @@ terminalView address model =
       , onClick address refocusAction
       , onBlur address refocusAction
       ]
+  -- The session logs, then the prompt, then a clearfix to clear floating elements.
   ((List.map (logView address) model.log) ++ [promptView address model, clearfix])
 
 
@@ -156,6 +160,8 @@ signals = Signal.mergeMany
           , (Signal.map Disconnect disconnected)
           , actions.signal
           ]
+
+-- PORTS
 
 port reFocus : Signal String
 port reFocus =
