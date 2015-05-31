@@ -47,7 +47,7 @@ init =
     server = ""
   , log = []
   , connected = False
-  , serverInput = protocol
+  , serverInput = protocol ++ "vps.rohanjain.in:9000"
   , promptInput = ""
   , connectionError = Nothing
   }
