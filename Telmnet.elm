@@ -132,26 +132,22 @@ headerView address model =
           Nothing -> False
           _       -> True
   in
-  div []
+  div [ id "header" ]
       [ input [ id "server"
-              , classList [ ("hidden", model.connected)
-                          , ("input-error", hadConnectionError) ]
+              , disabled model.connected
+              , classList [ ("input-error", hadConnectionError) ]
               , autofocus (not model.connected)
               , value model.serverInput
               , on "input" targetValue (UpdateServer >> Signal.message address)
               , onEnter address (Connect model.serverInput)  ]
         [ ]
-      , div [ classList [ ("hidden", not model.connected)
-                        , ("inline-block", True)
-                        ]
-            ]
-        [ text <| "Connect to: " ++ model.server ]
       , button [ id "toggle-connect"
                , onClick address (if model.connected
                                   then Disconnect Nothing
                                   else Connect model.serverInput )  ]
         [ text <| if model.connected then "Disconnect" else "Connect" ]
       , div [classList [ ("hidden", not hadConnectionError)
+                       , ("meta", True)
                        , ("error", True)
                        , ("inline-block", True) ]]
         [ text <| Maybe.withDefault "" model.connectionError ]
