@@ -6,31 +6,15 @@ import Html.Attributes exposing (..)
 import Utils exposing (..)
 import Regex exposing (regex, contains, split, find)
 
--- MODEL
-type alias Message =
-  {
-    source: String,
-    text: String
-  }
-
 type alias Model =
   {
     server: String
-  , log: List Message
+  , log: List String
   , connected: Bool
   , serverInput: String
   , promptInput: String
   , connectionError: Maybe String
   }
-
-incoming : String
-incoming = "in"
-
-outgoing : String
-outgoing = "out"
-
-protocol : String
-protocol = "ws://"
 
 init : Model
 init =
@@ -38,7 +22,7 @@ init =
     server = ""
   , log = []
   , connected = False
-  , serverInput = protocol ++ "vps.rohanjain.in:9000"
+  , serverInput = "ws://vps.rohanjain.in:9000"
   , promptInput = ""
   , connectionError = Nothing
   }
@@ -80,14 +64,12 @@ update act model =
 
     UpdatePrompt string -> { model | promptInput <- string }
     Send message        -> { model |
-                             log         <- model.log ++ [mkMessage outgoing message]
+                             log         <- model.log ++ [message]
                            , promptInput <- ""
                            }
     Receive message     -> { model |
                              log <- model.log
-                                    ++ (message
-                                          |> splitMessage
-                                          |> List.map (mkMessage incoming))
+                                    ++ splitMessage message
                            }
     _                   -> model
 
@@ -139,30 +121,20 @@ terminalView address model =
       , onClick address refocusAction
       , onBlur address refocusAction
       ]
-  -- [allLogView model, promptView address model, clearfix]
   ((List.map (logView address) model.log) ++ [promptView address model, clearfix])
 
 
-allLogView model =
-  let allText = model.log
-              |> List.map .text
-              |> List.foldr (++) ""
-
-  in
-    pre [ classList [ ] ]
-          [ text <| allText]
-
+logView : Signal.Address Action -> String -> Html
 logView address message =
-  let isReturn = message.text == "\n"
-      endsWithReturn = contains newLineEnd message.text
+  let isReturn = message == "\n"
+      endsWithReturn = contains newLineEnd message
       tag = if isReturn then div else pre
   in
     tag [ classList [ ("log-entry", True)
-                    , ("log-entry-" ++ message.source, True)
                     , ("float-left", not endsWithReturn)
                     , ("clearfix", isReturn)
                     ]]
-          [ text  message.text ]
+          [ text  message ]
 
 promptView : Signal.Address Action -> Model -> Html
 promptView address model =
