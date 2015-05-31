@@ -1,7 +1,7 @@
 # Telmnet
 
-Telmnet is telnet client, written in Elm. Actually, it is a client for the
-[websockify][] protocol. So, it only connects to websockify based proxies
+Telmnet is a telnet like client, written in Elm. Actually, it is a client for
+the [websockify][] protocol. So, it only connects to websockify based proxies
 instead of any TCP server.
 
 ## Building
@@ -23,7 +23,7 @@ watchman -r *.elm -- elm-make  Telmnet.elm  --output assets/app.js
 ## Motivation
 
 The motivation for this comes from my desire to build a web based client for
-[FICS][] (Free internet chess server), which runs over telnet. This really was
+[FICS][] (Free internet chess server), which runs over TCP. This really was
 is proof of concept for me.
 
 ## Try
