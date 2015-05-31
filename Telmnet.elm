@@ -3,7 +3,7 @@ module Telmnet where
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
-import Json.Decode as JsonD
+import Utils exposing (..)
 import Regex exposing (regex, contains, split, find)
 
 -- MODEL
@@ -22,15 +22,6 @@ type alias Model =
   , promptInput: String
   , connectionError: Maybe String
   }
-
-newline : Regex.Regex
-newline = regex "\n"
-
-newLineStart : Regex.Regex
-newLineStart = regex "^\n"
-
-newLineEnd : Regex.Regex
-newLineEnd = regex "\n$"
 
 incoming : String
 incoming = "in"
@@ -102,21 +93,6 @@ update act model =
 
 -- VIEW
 
-
-internalMerge : List a -> List a -> List a
-internalMerge xs ys =
-  case (xs, ys) of
-    (_, [])              -> xs
-    ([], _)              -> ys
-    (x :: xs, y :: ys)   -> x :: y :: internalMerge xs ys
-
-onEnter : Signal.Address a -> a -> Attribute
-onEnter address value =
-  let is13 code = if code == 13 then Ok () else Err "not the right key code"
-  in
-    on "keydown"
-         (JsonD.customDecoder keyCode is13)
-         (\_ -> Signal.message address value)
 
 view : Signal.Address Action -> Model -> Html
 view address model =
