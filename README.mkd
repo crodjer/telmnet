@@ -1,0 +1,28 @@
+# Telmnet
+
+Telmnet is telnet client, written in Elm. Actually, it is a client for the
+[websockify][] protocol. So, it only connects to websockify based proxies
+instead of any TCP server.
+
+## Motivation
+
+The motivation for this comes from my desire to build a web based client for
+[FICS][] (Free internet chess server), which runs over telnet. This really was
+is proof of concept for me.
+
+## Try
+
+To try it out, you can connect to any server proxied by websocify. I run two of
+those at:
+
+ - `ws://vps.rohanjain.in:9000/`: A simple group chat server.
+
+ - `ws://vps.rohanjain.in:9001/`: Proxy over the [FICS][] server. One can do
+   anything possible with `telnet freechess.org`, even play a few chess games.
+
+ - You can connect to any other server by installing [websockify][] and running:
+   `websockify [options] [address:]port [service_address:service_port]`.
+   `address` should be visible to your browser though.
+
+[websockify]: https://github.com/kanaka/websockify
+[FICS]: http://freechess.org/
